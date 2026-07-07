@@ -958,3 +958,9 @@ body {
   font-size: 0.7rem;
   color: var(--color-text-muted);
 }
+
+.unit-dry-vol {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}

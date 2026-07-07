@@ -243,7 +243,7 @@ function App() {
 
   // サンプルデータをロードする（お試し用）
   const handleLoadSample = () => {
-    if (data.shelvingUnits.length > 0 && !confirm('現在のデータが上書きされます。よろしいですか？')) {
+    if (data.shelvingUnits.length > 0 && !window.confirm('現在のデータが上書きされます。よろしいですか？')) {
       return;
     }
     
@@ -284,7 +284,7 @@ function App() {
 
   // 棚の削除
   const handleDeleteUnit = (unitId: string) => {
-    if (!confirm('この薪棚を削除しますか？(配置されたデータもすべて削除されます)')) return;
+    if (!window.confirm('この薪棚を削除しますか？(配置されたデータもすべて削除されます)')) return;
     const newData = {
       ...data,
       shelvingUnits: data.shelvingUnits.filter(u => u.id !== unitId)
@@ -388,6 +388,26 @@ function App() {
     return (size.height * size.width * size.depth) / 1000000;
   };
 
+  // 各薪棚ごとの乾燥完了・極上乾燥の体積集計
+  const getUnitDryVolume = (unit: ShelvingUnit) => {
+    let readyVol = 0;
+    let seasonedVol = 0;
+    unit.slots.forEach(slot => {
+      if (slot.firewood) {
+        const vol = getSlotVolumeM3(slot, unit.slotDefaultSize);
+        const dMonths = getDryMonths(slot.firewood.dryStartDate);
+        const dKey = getDrynessCategoryKey(dMonths);
+        if (dKey === 'ready') readyVol += vol;
+        if (dKey === 'seasoned') seasonedVol += vol;
+      }
+    });
+    return {
+      ready: readyVol,
+      seasoned: seasonedVol,
+      total: readyVol + seasonedVol
+    };
+  };
+
   // --- ストック体積集計の計算 ---
   const activeUnitVolBySpecies = { oak: 0, cherry: 0, hardwood: 0, softwood: 0, other: 0 };
   const activeUnitVolByDryness = { fresh: 0, medium: 0, ready: 0, seasoned: 0 };
@@ -464,31 +484,37 @@ function App() {
               {data.shelvingUnits.length === 0 ? (
                 <p className="empty-text">登録された棚がありません。右上の＋から追加してください。</p>
               ) : (
-                data.shelvingUnits.map((unit) => (
-                  <div 
-                    key={unit.id} 
-                    className={`unit-item ${unit.id === activeUnitId ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveUnitId(unit.id);
-                      setIsEditingUnitName(false); // 棚切り替え時は編集を閉じる
-                    }}
-                  >
-                    <div className="unit-info">
-                      <span className="unit-name">{unit.name}</span>
-                      <span className="unit-size">{unit.colsCount}列 × {unit.rowsCount}段</span>
-                    </div>
-                    <button 
-                      className="btn-delete-unit" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteUnit(unit.id);
+                data.shelvingUnits.map((unit) => {
+                  const dryVol = getUnitDryVolume(unit);
+                  return (
+                    <div 
+                      key={unit.id} 
+                      className={`unit-item ${unit.id === activeUnitId ? 'active' : ''}`}
+                      onClick={() => {
+                        setActiveUnitId(unit.id);
+                        setIsEditingUnitName(false); // 棚切り替え時は編集を閉じる
                       }}
-                      title="薪棚を削除"
                     >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))
+                      <div className="unit-info">
+                        <span className="unit-name">{unit.name}</span>
+                        <span className="unit-size">{unit.colsCount}列 × {unit.rowsCount}段</span>
+                        <span className="unit-dry-vol">
+                          乾燥済: {dryVol.total.toFixed(2)} ㎥ (完了:{dryVol.ready.toFixed(2)} / 極上:{dryVol.seasoned.toFixed(2)})
+                        </span>
+                      </div>
+                      <button 
+                        className="btn-delete-unit" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteUnit(unit.id);
+                        }}
+                        title="薪棚を削除"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
