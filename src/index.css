@@ -1,0 +1,960 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+:root {
+  --font-sans: 'Outfit', 'Noto Sans JP', sans-serif;
+  
+  /* カラー定義 */
+  --bg-gradient-start: #0a0f0d;
+  --bg-gradient-end: #14201a;
+  --panel-bg: rgba(22, 34, 29, 0.75);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-glow: rgba(16, 185, 129, 0.03);
+  
+  --color-primary: #f59e0b; /* 薪のアンバーオレンジ */
+  --color-primary-hover: #d97706;
+  --color-text-main: #f3f4f6;
+  --color-text-muted: #9ca3af;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  
+  /* 樹種カラーコード（自然な木材を意識したトーン） */
+  --color-oak: #854d0e;      /* クヌギ・ナラ (ダークゴールド/オーク) */
+  --color-cherry: #991b1b;   /* サクラ (マホガニーチェリーレッド) */
+  --color-hardwood: #a16207; /* その他硬木 (アンバー) */
+  --color-softwood: #166534; /* 針葉樹 (オリーブグリーン) */
+  --color-other: #4b5563;    /* その他 (スレートグレー) */
+  
+  /* 乾燥バッジ */
+  --badge-fresh: #b91c1c;    /* 未乾燥 */
+  --badge-medium: #c2410c;   /* 乾燥中 */
+  --badge-ready: #15803d;    /* 乾燥完了 */
+  --badge-seasoned: #0e7490; /* 極上乾燥 */
+}
+
+/* リセット＆基本設定 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  color: var(--color-text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* アプリコンテナ */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ヘッダー */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(10, 15, 13, 0.8);
+  border-bottom: 1px solid var(--panel-border);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-icon {
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+}
+
+.header-brand h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(to right, #f59e0b, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-mode {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-primary);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* ボタン共通 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #1e1b4b;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-main);
+  border-color: var(--panel-border);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-hover);
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-primary);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+/* メインコンテンツレイアウト */
+.app-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 左サイドバー */
+.app-sidebar-left {
+  width: 260px;
+  background: rgba(10, 15, 13, 0.4);
+  border-right: 1px solid var(--panel-border);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+}
+
+/* 右サイドバー (新設) */
+.app-sidebar-right {
+  width: 340px;
+  background: rgba(10, 15, 13, 0.4);
+  border-left: 1px solid var(--panel-border);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+}
+
+/* パネル */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.5rem;
+}
+
+.panel-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-main);
+}
+
+/* 薪棚リスト */
+.unit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.unit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unit-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.unit-item.active {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.unit-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.unit-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.unit-size {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.btn-delete-unit {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-delete-unit:hover {
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* 表示設定 */
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+/* 凡例 */
+.legend-content h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.legend-content h3:first-of-type {
+  margin-top: 0;
+}
+
+.legend-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-status-badge {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+  color: white;
+}
+
+.empty-text {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* メイン表示エリア */
+.app-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 薪棚パネル */
+.stocker-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.stocker-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: rgba(18, 30, 24, 0.5);
+  border: 1px solid var(--panel-border);
+  padding: 1.25rem;
+  border-radius: 12px;
+}
+
+.meta-left h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.meta-dim {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.stocker-summary-badge {
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+}
+
+/* リアルな木枠ラック */
+.wood-rack-outer {
+  background: #2b1f13; /* 木の色の外枠 */
+  padding: 1rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 2px 8px rgba(0, 0, 0, 0.6);
+  border: 4px solid #1c140c;
+  flex: 1;
+  display: flex;
+}
+
+.wood-rack-grid {
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100%;
+  min-height: 350px;
+}
+
+/* グリッドセル */
+.grid-cell {
+  position: relative;
+  background: rgba(0, 0, 0, 0.35); /* スロットの内側（暗い空洞） */
+  border: 3px solid #3c2a1a; /* 棚の梁 */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.grid-cell:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.15), inset 0 4px 10px rgba(0, 0, 0, 0.5);
+  border-color: var(--color-primary);
+  z-index: 2;
+}
+
+.cell-coordinates {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 薪がある状態 */
+.grid-cell.has-wood {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  /* 木材の質感を表現するための背景ストライプ */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(255, 255, 255, 0.02) 10px,
+    rgba(0, 0, 0, 0.1) 10px,
+    rgba(0, 0, 0, 0.1) 20px
+  );
+}
+
+.wood-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: auto;
+}
+
+.wood-species {
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.01em;
+}
+
+.dry-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  width: fit-content;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.dry-fresh { background-color: var(--badge-fresh); }
+.dry-medium { background-color: var(--badge-medium); }
+.dry-ready { background-color: var(--badge-ready); }
+.dry-seasoned { background-color: var(--badge-seasoned); }
+
+.wood-notes-indicator {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* 空スロット */
+.grid-cell.empty {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.empty-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  gap: 0.25rem;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.grid-cell.empty:hover .empty-indicator {
+  color: var(--color-primary);
+}
+
+.add-icon {
+  transition: transform 0.2s;
+}
+
+.grid-cell.empty:hover .add-icon {
+  transform: rotate(90deg);
+}
+
+/* 未作成時の空状態 */
+.empty-stocker-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  text-align: center;
+  max-width: 460px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  padding: 3rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.empty-icon {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
+}
+
+.empty-stocker-state h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.empty-stocker-state p {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+.empty-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* モーダル */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: #16221d;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  width: 500px;
+  max-width: 90%;
+  padding: 1.75rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.2s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.75rem;
+}
+
+.modal-header h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-close:hover {
+  color: white;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--panel-border);
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  color: white;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  min-width: 0;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-row-three {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.modal-actions-space {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.75rem;
+}
+
+.modal-actions-right {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* メディアクエリ（画面幅調整） */
+@media (max-width: 1024px) {
+  .app-content {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .app-sidebar {
+    width: 100%;
+    height: auto;
+    overflow-y: visible;
+  }
+  .app-container {
+    height: auto;
+    overflow: auto;
+  }
+  .app-main {
+    height: auto;
+    min-height: 600px;
+  }
+}
+
+/* === 新機能用追加スタイル === */
+
+/* 棚名のインライン編集 */
+.title-display-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.btn-edit-title {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-edit-title:hover {
+  color: var(--color-primary);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.inline-title-edit-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.title-edit-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-primary);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  outline: none;
+  font-family: var(--font-sans);
+  width: 240px;
+}
+
+.btn-save-title {
+  background: var(--color-primary);
+  color: #0a0f0d;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-save-title:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-cancel-title {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-main);
+  border: 1px solid var(--panel-border);
+  padding: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.btn-cancel-title:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* カスタムラベル（設定＆凡例）の編集 */
+.legend-setting-item {
+  display: flex;
+  align-items: center;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  gap: 0.5rem;
+}
+
+.legend-setting-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.legend-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.legend-label-text {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-size: 0.85rem;
+}
+
+.legend-label-text:hover {
+  color: var(--color-primary);
+}
+
+.edit-icon-inline {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: var(--color-text-muted);
+}
+
+.legend-label-text:hover .edit-icon-inline {
+  opacity: 1;
+}
+
+.edit-label-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.input-label-edit {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.8rem;
+  outline: none;
+  font-family: var(--font-sans);
+  flex: 1;
+}
+
+.btn-save-label {
+  background: var(--color-primary);
+  color: #0a0f0d;
+  border: none;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-save-label:hover {
+  background: var(--color-primary-hover);
+}
+
+/* 体積 (㎥) バッジ＆ストックサマリー */
+.vol-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+  white-space: nowrap;
+}
+
+.vol-total-sub {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  font-weight: normal;
+}
+
+.stock-summary-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
+  gap: 0.1rem;
+}
+
+.stock-summary-total .label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.stock-summary-total .vol-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.1;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+}
+
+.stock-summary-total .total-label-sub {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}

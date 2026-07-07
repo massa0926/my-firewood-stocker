@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "shelvingUnits": [
+    {
+      "id": "unit-a",
+      "name": "薪棚A",
+      "rowsCount": 3,
+      "colsCount": 4,
+      "slotDefaultSize": {
+        "height": 50,
+        "width": 80,
+        "depth": 40
+      },
+      "slots": [
+        { "row": 0, "col": 0, "firewood": { "id": "wood-001", "species": "クヌギ", "dryStartDate": "2026-01-10", "notes": "特級品" } },
+        { "row": 0, "col": 1, "firewood": null },
+        { "row": 0, "col": 2, "firewood": null },
+        { "row": 0, "col": 3, "firewood": null },
+        { "row": 1, "col": 0, "firewood": null },
+        { "row": 1, "col": 1, "firewood": null },
+        { "row": 1, "col": 2, "firewood": null },
+        { "row": 1, "col": 3, "firewood": null },
+        { "row": 2, "col": 0, "firewood": null },
+        { "row": 2, "col": 1, "firewood": null },
+        { "row": 2, "col": 2, "firewood": null },
+        { "row": 2, "col": 3, "firewood": null }
+      ]
+    }
+  ]
+}
