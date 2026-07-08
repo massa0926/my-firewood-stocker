@@ -67,9 +67,9 @@ function App() {
   // 薪の配置用状態 (モーダル)
   const [selectedSlot, setSelectedSlot] = useState<{ row: number; col: number } | null>(null);
   const [woodSpecies, setWoodSpecies] = useState('クヌギ');
-  const [woodDryStart, setWoodDryStart] = useState(() => {
-    return new Date().toISOString().split('T')[0];
-  });
+  const [woodDryYear, setWoodDryYear] = useState<number>(() => new Date().getFullYear());
+  const [woodDryMonth, setWoodDryMonth] = useState<number>(() => new Date().getMonth() + 1);
+  const [woodDryDay, setWoodDryDay] = useState<number>(() => new Date().getDate());
   const [woodNotes, setWoodNotes] = useState('');
   const [woodDisplayName, setWoodDisplayName] = useState('');
 
@@ -176,15 +176,26 @@ function App() {
     setSelectedSlot({ row: slot.row, col: slot.col });
     if (slot.firewood) {
       setWoodSpecies(slot.firewood.species);
-      setWoodDryStart(slot.firewood.dryStartDate);
       setWoodNotes(slot.firewood.notes || '');
       setWoodDisplayName(slot.firewood.displayName || '');
+      
+      // 日付文字列を分解してStateに設定
+      const parts = slot.firewood.dryStartDate.split('-');
+      if (parts.length === 3) {
+        setWoodDryYear(Number(parts[0]));
+        setWoodDryMonth(Number(parts[1]));
+        setWoodDryDay(Number(parts[2]));
+      }
     } else {
       // 登録されている樹種カテゴリから最初のものなどをプレデフォルトにする
       setWoodSpecies('クヌギ');
-      setWoodDryStart(new Date().toISOString().split('T')[0]);
       setWoodNotes('');
       setWoodDisplayName('');
+      
+      const today = new Date();
+      setWoodDryYear(today.getFullYear());
+      setWoodDryMonth(today.getMonth() + 1);
+      setWoodDryDay(today.getDate());
     }
   };
 
@@ -193,10 +204,13 @@ function App() {
     e.preventDefault();
     if (!activeUnit || !selectedSlot) return;
 
+    // 年・月・日を結合して YYYY-MM-DD 文字列にする
+    const dryDateStr = `${woodDryYear}-${String(woodDryMonth).padStart(2, '0')}-${String(woodDryDay).padStart(2, '0')}`;
+
     const newFirewood: Firewood = {
       id: activeUnit.slots.find(s => s.row === selectedSlot.row && s.col === selectedSlot.col)?.firewood?.id || `wood-${Date.now()}`,
       species: woodSpecies,
-      dryStartDate: woodDryStart,
+      dryStartDate: dryDateStr,
       notes: woodNotes || undefined,
       displayName: woodDisplayName || undefined
     };
@@ -1022,12 +1036,35 @@ function App() {
 
               <div className="form-group">
                 <label>乾燥開始日</label>
-                <input 
-                  type="date" 
-                  value={woodDryStart} 
-                  onChange={(e) => setWoodDryStart(e.target.value)} 
-                  required 
-                />
+                <div className="date-select-group">
+                  <select 
+                    value={woodDryYear} 
+                    onChange={(e) => setWoodDryYear(Number(e.target.value))}
+                    className="select-date-year"
+                  >
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                      <option key={y} value={y}>{y}年</option>
+                    ))}
+                  </select>
+                  <select 
+                    value={woodDryMonth} 
+                    onChange={(e) => setWoodDryMonth(Number(e.target.value))}
+                    className="select-date-month"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{m}月</option>
+                    ))}
+                  </select>
+                  <select 
+                    value={woodDryDay} 
+                    onChange={(e) => setWoodDryDay(Number(e.target.value))}
+                    className="select-date-day"
+                  >
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                      <option key={d} value={d}>{d}日</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="form-group">

@@ -403,6 +403,14 @@ body {
   color: var(--color-text-muted);
 }
 
+.meta-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .stocker-summary-badge {
   font-size: 0.8rem;
   background: rgba(255, 255, 255, 0.05);
@@ -410,6 +418,7 @@ body {
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 /* リアルな木枠ラック */
@@ -1050,4 +1059,15 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* 3連日付セレクトボックス */
+.date-select-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.date-select-group select {
+  flex: 1;
+  min-width: 0;
 }
