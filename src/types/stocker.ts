@@ -6,6 +6,7 @@ export interface Firewood {
   species: string;        // 樹種 (例: "クヌギ", "ナラ", "サクラ", "スギ" など)
   dryStartDate: string;   // 乾燥開始日 (ISO 8601形式: YYYY-MM-DD)
   notes?: string;         // メモ・備考
+  displayName?: string;   // 表示名 (任意)
 }
 
 /**

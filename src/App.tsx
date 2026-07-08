@@ -15,7 +15,10 @@ import {
   Check,
   X,
   Database,
-  RefreshCw
+  RefreshCw,
+  ChevronUp,
+  ChevronDown,
+  Sliders
 } from 'lucide-react';
 import { 
   loadStockerData, 
@@ -26,7 +29,9 @@ import {
   updateShelvingUnitName,
   updateStockerSettings,
   DEFAULT_STOCKER_DATA,
-  DEFAULT_SETTINGS
+  DEFAULT_SETTINGS,
+  resizeShelvingUnit,
+  reorderShelvingUnit
 } from './utils/storage';
 import type { StockerData, ShelvingUnit, Firewood, Slot, StockerSettings } from './types/stocker';
 
@@ -43,6 +48,14 @@ function App() {
   const [newUnitWidth, setNewUnitWidth] = useState<number | ''>(80);
   const [newUnitDepth, setNewUnitDepth] = useState<number | ''>(40);
 
+  // 薪棚サイズ変更用状態
+  const [showResizeModal, setShowResizeModal] = useState(false);
+  const [resizeRows, setResizeRows] = useState<number | ''>(3);
+  const [resizeCols, setResizeCols] = useState<number | ''>(4);
+  const [resizeHeight, setResizeHeight] = useState<number | ''>(50);
+  const [resizeWidth, setResizeWidth] = useState<number | ''>(80);
+  const [resizeDepth, setResizeDepth] = useState<number | ''>(40);
+
   // 薪棚名のインライン編集用状態
   const [isEditingUnitName, setIsEditingUnitName] = useState(false);
   const [editedUnitName, setEditedUnitName] = useState('');
@@ -58,6 +71,7 @@ function App() {
     return new Date().toISOString().split('T')[0];
   });
   const [woodNotes, setWoodNotes] = useState('');
+  const [woodDisplayName, setWoodDisplayName] = useState('');
 
   // 視覚表現トグル状態
   const [showDrynessEffect, setShowDrynessEffect] = useState(true);
@@ -164,11 +178,13 @@ function App() {
       setWoodSpecies(slot.firewood.species);
       setWoodDryStart(slot.firewood.dryStartDate);
       setWoodNotes(slot.firewood.notes || '');
+      setWoodDisplayName(slot.firewood.displayName || '');
     } else {
       // 登録されている樹種カテゴリから最初のものなどをプレデフォルトにする
       setWoodSpecies('クヌギ');
       setWoodDryStart(new Date().toISOString().split('T')[0]);
       setWoodNotes('');
+      setWoodDisplayName('');
     }
   };
 
@@ -181,7 +197,8 @@ function App() {
       id: activeUnit.slots.find(s => s.row === selectedSlot.row && s.col === selectedSlot.col)?.firewood?.id || `wood-${Date.now()}`,
       species: woodSpecies,
       dryStartDate: woodDryStart,
-      notes: woodNotes || undefined
+      notes: woodNotes || undefined,
+      displayName: woodDisplayName || undefined
     };
 
     const newData = setFirewoodAt(data, activeUnit.id, selectedSlot.row, selectedSlot.col, newFirewood);
@@ -295,6 +312,39 @@ function App() {
     } else {
       setActiveUnitId('');
     }
+  };
+
+  // 棚の表示順序を変更するハンドラ
+  const handleReorderUnit = (unitId: string, direction: 'up' | 'down') => {
+    const newData = reorderShelvingUnit(data, unitId, direction);
+    updateData(newData);
+  };
+
+  // 棚サイズ変更モーダルを開くハンドラ
+  const handleOpenResizeModal = () => {
+    if (!activeUnit) return;
+    setResizeRows(activeUnit.rowsCount);
+    setResizeCols(activeUnit.colsCount);
+    setResizeHeight(activeUnit.slotDefaultSize.height);
+    setResizeWidth(activeUnit.slotDefaultSize.width);
+    setResizeDepth(activeUnit.slotDefaultSize.depth);
+    setShowResizeModal(true);
+  };
+
+  // 棚サイズ変更の保存ハンドラ
+  const handleSaveResize = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeUnit) return;
+
+    const rows = resizeRows === '' ? 3 : resizeRows;
+    const cols = resizeCols === '' ? 4 : resizeCols;
+    const h = resizeHeight === '' ? 50 : resizeHeight;
+    const w = resizeWidth === '' ? 80 : resizeWidth;
+    const d = resizeDepth === '' ? 40 : resizeDepth;
+
+    const newData = resizeShelvingUnit(data, activeUnit.id, rows, cols, { height: h, width: w, depth: d });
+    updateData(newData);
+    setShowResizeModal(false);
   };
 
   // 樹種によるカラー設定取得
@@ -484,7 +534,7 @@ function App() {
               {data.shelvingUnits.length === 0 ? (
                 <p className="empty-text">登録された棚がありません。右上の＋から追加してください。</p>
               ) : (
-                data.shelvingUnits.map((unit) => {
+                data.shelvingUnits.map((unit, index) => {
                   const dryVol = getUnitDryVolume(unit);
                   return (
                     <div 
@@ -502,16 +552,42 @@ function App() {
                           乾燥済: {dryVol.total.toFixed(2)} ㎥ (完了:{dryVol.ready.toFixed(2)} / 極上:{dryVol.seasoned.toFixed(2)})
                         </span>
                       </div>
-                      <button 
-                        className="btn-delete-unit" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteUnit(unit.id);
-                        }}
-                        title="薪棚を削除"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <div className="unit-actions">
+                        <div className="unit-reorder-buttons">
+                          <button 
+                            className="btn-reorder" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReorderUnit(unit.id, 'up');
+                            }}
+                            disabled={index === 0}
+                            title="順序を上げる"
+                          >
+                            <ChevronUp size={12} />
+                          </button>
+                          <button 
+                            className="btn-reorder" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReorderUnit(unit.id, 'down');
+                            }}
+                            disabled={index === data.shelvingUnits.length - 1}
+                            title="順序を下げる"
+                          >
+                            <ChevronDown size={12} />
+                          </button>
+                        </div>
+                        <button 
+                          className="btn-delete-unit" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteUnit(unit.id);
+                          }}
+                          title="薪棚を削除"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })
@@ -583,9 +659,17 @@ function App() {
                     </div>
                   )}
 
-                  <span className="meta-dim">
+                  <span className="meta-dim flex-wrap-align">
+                    全体サイズ: {activeUnit.colsCount}列 × {activeUnit.rowsCount}段 | 
                     スロット寸法: {activeUnit.slotDefaultSize.width}w × {activeUnit.slotDefaultSize.height}h × {activeUnit.slotDefaultSize.depth}d (cm) 
                     (スロット体積: {((activeUnit.slotDefaultSize.width * activeUnit.slotDefaultSize.height * activeUnit.slotDefaultSize.depth) / 1000000).toFixed(3)} ㎥)
+                    <button 
+                      className="btn-edit-size" 
+                      onClick={handleOpenResizeModal}
+                      title="薪棚のサイズ変更"
+                    >
+                      <Sliders size={12} /> サイズ変更
+                    </button>
                   </span>
                 </div>
                 
@@ -643,13 +727,17 @@ function App() {
                           
                           {isWoodPlaced && slot.firewood ? (
                             <div className="wood-details">
-                              <span className="wood-species">{slot.firewood.species}</span>
+                              <span className="wood-species" title={slot.firewood.displayName || slot.firewood.species}>
+                                {slot.firewood.displayName || slot.firewood.species}
+                              </span>
                               <span className={`dry-badge ${dryStatus?.class}`}>
                                 {dryStatus?.label}
                               </span>
                               {slot.firewood.notes && (
                                 <span className="wood-notes-indicator" title={slot.firewood.notes}>
-                                  ※メモあり
+                                  {slot.firewood.notes.length > 100 
+                                    ? `${slot.firewood.notes.substring(0, 100)}...` 
+                                    : slot.firewood.notes}
                                 </span>
                               )}
                             </div>
@@ -909,7 +997,17 @@ function App() {
             </div>
             <form onSubmit={handleSaveFirewood}>
               <div className="form-group">
-                <label>樹種</label>
+                <label>表示名 (任意 / 空欄時は樹種名を表示)</label>
+                <input 
+                  type="text" 
+                  value={woodDisplayName} 
+                  onChange={(e) => setWoodDisplayName(e.target.value)} 
+                  placeholder="例: 極上クヌギ、割薪A" 
+                />
+              </div>
+
+              <div className="form-group">
+                <label>樹種 (集計・色分け基準)</label>
                 <select value={woodSpecies} onChange={(e) => setWoodSpecies(e.target.value)}>
                   {/* 設定されたカスタムラベルをドロップダウンに反映 */}
                   <option value="クヌギ">{settings.speciesLabels.oak} (クヌギ等)</option>
@@ -957,6 +1055,92 @@ function App() {
                     <FileCheck size={16} /> 保存する
                   </button>
                 </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 薪棚サイズ変更モーダル */}
+      {showResizeModal && activeUnit && (
+        <div className="modal-overlay" onClick={() => setShowResizeModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>薪棚のサイズ変更 ({activeUnit.name})</h2>
+              <button className="btn-close" onClick={() => setShowResizeModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveResize}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>上下段数 (行数)</label>
+                  <input 
+                    type="number" 
+                    min={1} 
+                    max={10} 
+                    value={resizeRows} 
+                    onChange={(e) => setResizeRows(e.target.value === '' ? '' : Number(e.target.value))} 
+                    onBlur={() => {
+                      if (resizeRows === '' || resizeRows < 1) setResizeRows(activeUnit.rowsCount);
+                    }}
+                    required 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>前後列数 (列数)</label>
+                  <input 
+                    type="number" 
+                    min={1} 
+                    max={10} 
+                    value={resizeCols} 
+                    onChange={(e) => setResizeCols(e.target.value === '' ? '' : Number(e.target.value))} 
+                    onBlur={() => {
+                      if (resizeCols === '' || resizeCols < 1) setResizeCols(activeUnit.colsCount);
+                    }}
+                    required 
+                  />
+                </div>
+              </div>
+
+              <h3 className="section-title"><Wrench size={14} /> スロットの標準寸法 (メタデータ)</h3>
+              <div className="form-row-three">
+                <div className="form-group">
+                  <label>高さ (cm)</label>
+                  <input 
+                    type="number" 
+                    value={resizeHeight} 
+                    onChange={(e) => setResizeHeight(e.target.value === '' ? '' : Number(e.target.value))} 
+                    onBlur={() => {
+                      if (resizeHeight === '' || resizeHeight < 1) setResizeHeight(activeUnit.slotDefaultSize.height);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>幅 (cm)</label>
+                  <input 
+                    type="number" 
+                    value={resizeWidth} 
+                    onChange={(e) => setResizeWidth(e.target.value === '' ? '' : Number(e.target.value))} 
+                    onBlur={() => {
+                      if (resizeWidth === '' || resizeWidth < 1) setResizeWidth(activeUnit.slotDefaultSize.width);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>奥行 (cm)</label>
+                  <input 
+                    type="number" 
+                    value={resizeDepth} 
+                    onChange={(e) => setResizeDepth(e.target.value === '' ? '' : Number(e.target.value))} 
+                    onBlur={() => {
+                      if (resizeDepth === '' || resizeDepth < 1) setResizeDepth(activeUnit.slotDefaultSize.depth);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowResizeModal(false)}>キャンセル</button>
+                <button type="submit" className="btn btn-primary">変更を保存</button>
               </div>
             </form>
           </div>

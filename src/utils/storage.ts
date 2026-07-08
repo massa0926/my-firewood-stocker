@@ -172,3 +172,87 @@ export function updateStockerSettings(
     settings: newSettings
   };
 }
+
+/**
+ * 薪棚のサイズ（行数・列数・スロットデフォルトサイズ）を変更する（イミュータブルな純粋関数）
+ */
+export function resizeShelvingUnit(
+  data: StockerData,
+  unitId: string,
+  rowsCount: number,
+  colsCount: number,
+  defaultSize: { height: number; width: number; depth: number }
+): StockerData {
+  return {
+    ...data,
+    shelvingUnits: data.shelvingUnits.map((unit) => {
+      if (unit.id !== unitId) return unit;
+
+      // 既存のスロットデータをマップに格納 (キー: 'row-col')
+      const existingSlotsMap = new Map<string, Slot>();
+      unit.slots.forEach(slot => {
+        existingSlotsMap.set(`${slot.row}-${slot.col}`, slot);
+      });
+
+      // 新しいサイズに合わせてスロット配列を再構築
+      const slots: Slot[] = [];
+      for (let r = 0; r < rowsCount; r++) {
+        for (let c = 0; c < colsCount; c++) {
+          const key = `${r}-${c}`;
+          if (existingSlotsMap.has(key)) {
+            // 既存スロットが新サイズ内であれば、データを引き継ぐ
+            const oldSlot = existingSlotsMap.get(key)!;
+            slots.push({
+              ...oldSlot,
+              row: r,
+              col: c
+            });
+          } else {
+            // 新しく追加されたスロットは空で初期化
+            slots.push({
+              row: r,
+              col: c,
+              firewood: null
+            });
+          }
+        }
+      }
+
+      return {
+        ...unit,
+        rowsCount,
+        colsCount,
+        slotDefaultSize: defaultSize,
+        slots
+      };
+    })
+  };
+}
+
+/**
+ * 薪棚の表示順序を上下に入れ替える（イミュータブルな純粋関数）
+ */
+export function reorderShelvingUnit(
+  data: StockerData,
+  unitId: string,
+  direction: 'up' | 'down'
+): StockerData {
+  const units = [...data.shelvingUnits];
+  const index = units.findIndex(u => u.id === unitId);
+  if (index === -1) return data;
+
+  if (direction === 'up' && index > 0) {
+    const temp = units[index];
+    units[index] = units[index - 1];
+    units[index - 1] = temp;
+  } else if (direction === 'down' && index < units.length - 1) {
+    const temp = units[index];
+    units[index] = units[index + 1];
+    units[index + 1] = temp;
+  }
+
+  return {
+    ...data,
+    shelvingUnits: units
+  };
+}
